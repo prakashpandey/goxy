@@ -1,0 +1,28 @@
+##################################
+# @author Prakash Pandey
+# @email prakashpandeyy@yahoo.com
+# @create date 2018-10-18 01:29:16
+# @modify date 2018-10-18 01:29:16
+# @desc [description]
+###################################
+
+language: go
+sudo: false
+
+go:
+  - 1.9
+
+git:
+  depth: 1
+
+install: true
+
+before_script:
+  - go get -t -v ./...
+
+script:
+  - go test -v
+  - go build
+
+notifications:
+  email: false
