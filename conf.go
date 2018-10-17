@@ -9,32 +9,42 @@
 package main
 
 import (
-	"os"
-	"strconv"
+	"flag"
+	"log"
 )
 
 type proxyConfig struct {
 	hostName string
 	port     int
-	// in seconds
+	// request timeout in seconds (Not implemented)
 	timeout int
+	// if proxy server will use authorization for every request
+	authorize bool
+	userName  string
+	password  string
 }
 
-func getProxyConfig() *proxyConfig {
-	port, err := strconv.Atoi(os.Getenv("port"))
-	if err != nil {
-		// default port
-		port = 9090
-	}
-	timeout, err := strconv.Atoi(os.Getenv("timeout"))
-	if err != nil {
-		// default timeout in seconds
-		timeout = 2
-	}
+// contains configuration details
+var config proxyConfig
 
-	return &proxyConfig{
-		hostName: os.Getenv("hostname"),
-		port:     port,
-		timeout:  timeout,
+func setProxyConfig() {
+	// Parse configuration
+	var host = flag.String("host", "", "proxy hostname")
+	var port = flag.Int("port", 9090, "proxy port")
+	var timeout = flag.Int("timeout", 2, "proxy port")
+	var authorize = flag.Bool("authorize", false, "use authorized proxy server")
+	var userName = flag.String("user", "root", "proxy username")
+	var password = flag.String("password", "root", "proxy password")
+	// Parse all flags
+	flag.Parse()
+	log.Printf("Setting configuration [hostName: %s, port: %d, , authorize: %v, userName: %s, password: %s, timeout: %d]\n",
+		*host, *port, *authorize, *userName, *password, *timeout)
+	config = proxyConfig{
+		hostName:  *host,
+		port:      *port,
+		timeout:   *timeout,
+		authorize: *authorize,
+		userName:  *userName,
+		password:  *password,
 	}
 }

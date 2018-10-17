@@ -16,10 +16,14 @@ import (
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("__INIT__ rootHandler")
-	if r.Method == http.MethodConnect {
-		handleHTTPS(w, r)
+	if auth(r) {
+		if r.Method == http.MethodConnect {
+			handleHTTPS(w, r)
+		} else {
+			handleHTTP(w, r)
+		}
 	} else {
-		handleHTTP(w, r)
+		http.Error(w, "Unauthorized request", http.StatusUnauthorized)
 	}
 	log.Println("__DONE__ rootHandler")
 }
@@ -58,10 +62,12 @@ func handleHTTPS(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// get configuration such as hostname, port, timeout etc
-	config := getProxyConfig()
-	log.Printf("Running goxy at [hostName: %s, port: %d, timeout: %d]\n", config.hostName, config.port, config.timeout)
-
-	http.HandleFunc("/", rootHandler)
+	// set configuration such as hostname, port, timeout etc
+	setProxyConfig()
+	log.Printf("Running goxy at [hostName: %s, port: %d]\n",
+		config.hostName, config.port)
+	// start https server in new goroutine
+	// go http.ListenAndServeTLS(":9091", "cert.pem", "key.pem", nil)
+	// start http server
 	http.ListenAndServe(config.hostName+":"+strconv.Itoa(config.port), nil)
 }

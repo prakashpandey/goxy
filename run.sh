@@ -8,4 +8,4 @@
 
 #!/bin/bash
 
-go run main.go conf.go
+go run main.go conf.go auth.go -host="" -port=9090 -authorize=false -user="root" -password="pass"
