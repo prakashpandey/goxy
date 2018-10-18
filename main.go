@@ -8,25 +8,14 @@
 package main
 
 import (
+	"crypto/tls"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
+	"time"
 )
-
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("__INIT__ rootHandler")
-	if auth(r) {
-		if r.Method == http.MethodConnect {
-			handleHTTPS(w, r)
-		} else {
-			handleHTTP(w, r)
-		}
-	} else {
-		http.Error(w, "Unauthorized request", http.StatusUnauthorized)
-	}
-	log.Println("__DONE__ rootHandler")
-}
 
 func handleHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println("__INIT__ handleHTTP")
@@ -56,9 +45,34 @@ func handleHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println("__DONE__ handleHTTP")
 }
 
-func handleHTTPS(w http.ResponseWriter, r *http.Request) {
-	log.Println("__INIT__ handleHTTPS")
-	log.Println("__DONE__ handleHTTPS")
+func handleTunneling(w http.ResponseWriter, r *http.Request) {
+	log.Println("__INIT__ handleTunneling")
+	destConn, err := net.DialTimeout("tcp", r.Host, 2*time.Second)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	hijacker, ok := w.(http.Hijacker)
+	if !ok {
+		http.Error(w, "Hijacking not supported", http.StatusInternalServerError)
+		return
+	}
+	clientConn, _, err := hijacker.Hijack()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+	}
+	go transfer(destConn, clientConn)
+	go transfer(clientConn, destConn)
+	log.Println("__DONE__ handleTunneling")
+}
+
+func transfer(destination io.WriteCloser, source io.ReadCloser) {
+	log.Println("__INIT__ transfer")
+	defer destination.Close()
+	defer source.Close()
+	io.Copy(destination, source)
+	log.Println("__DONE__ transfer")
 }
 
 func main() {
@@ -67,12 +81,28 @@ func main() {
 	log.Printf("Running goxy at [hostName: %s, port: %d]\n",
 		config.hostName, config.port)
 
-	// add root handler
-	http.HandleFunc("/", rootHandler)
+	server := &http.Server{
+		Addr: config.hostName + ":" + strconv.Itoa(config.port),
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if auth(r) {
+				if r.Method == http.MethodConnect {
+					handleTunneling(w, r)
+				} else {
+					handleHTTP(w, r)
+				}
+			} else {
+				log.Println("Unauthorized request received")
+				http.Error(w, "Unauthorized request", http.StatusUnauthorized)
+			}
 
-	// start https server in new goroutine
-	// go http.ListenAndServeTLS(":9091", "cert.pem", "key.pem", nil)
+		}),
+		// Disable HTTP/2.
+		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
+	}
 
-	// start http server
-	http.ListenAndServe(config.hostName+":"+strconv.Itoa(config.port), nil)
+	if config.proto == "http" {
+		log.Fatal(server.ListenAndServe())
+	} else {
+		log.Fatal(server.ListenAndServeTLS(config.proxyServCert, config.proxyServKey))
+	}
 }
