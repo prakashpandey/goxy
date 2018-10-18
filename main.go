@@ -17,6 +17,7 @@ import (
 	"time"
 )
 
+// handles http requests
 func handleHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println("__INIT__ handleHTTP")
 	req, err := http.NewRequest(r.Method, r.RequestURI, r.Body)
@@ -45,6 +46,7 @@ func handleHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println("__DONE__ handleHTTP")
 }
 
+// handles https requests
 func handleTunneling(w http.ResponseWriter, r *http.Request) {
 	log.Println("__INIT__ handleTunneling")
 	destConn, err := net.DialTimeout("tcp", r.Host, 2*time.Second)

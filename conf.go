@@ -45,7 +45,7 @@ func setProxyConfig() {
 	var proxyServKey = flag.String("key", "key.pem", "proxy server private key")
 	// Parse all flags
 	flag.Parse()
-	log.Printf("Setting configuration [hostName: %s, port: %d, , authorize: %v, userName: %s, password: %s, timeout: %d, protocol: %s, certificate: %s, privateKey: %s]\n",
+	log.Printf("Setting configuration [hostName: %s, port: %d, , authorize: %v, userName: %s, password: %s, timeout: %d, protocol: %s, certificate: %s, privateKey: %s]\n\n",
 		*host, *port, *authorize, *userName, *password, *timeout, *proto, *proxyServCert, *proxyServKey)
 	config = proxyConfig{
 		hostName:      *host,
