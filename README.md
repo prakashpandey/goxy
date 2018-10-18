@@ -26,7 +26,9 @@ A proxy server written on golang
 
 - `./goxy -host="" -port=9090 -authorize=true -user="root" -password="pass"`
 
-## Curls commands for testing 
+## Curl commands for testing 
+
+Get http url. Remove `proxyUser:proxyPassword` if `authorize` set to `false`
 
 - `curl  -U proxyUser:proxyPassword --proxy http://localhost:9090 http://google.com`
 
