@@ -1,12 +1,12 @@
-# goxy
+# Goxy
 
-A proxy server build using golang
+A proxy server written on golang
 
-# Clone program
+## Clone program
 
 - `git clone https://github.com/prakashpandey/goxy`
 
-# Confuguration
+## Configuration
 
 - `host`: Host of proxy server
 
@@ -18,21 +18,15 @@ A proxy server build using golang
 
 - `password`: Password of proxy server. Valid only if `authorize` is set `true`
 
-# Build & Run
+## Build & Run
 
 - `cd github.com/prakashpandey/goxy`
 
 - `go build`
 
-- `./goxy -host="" -port=9090 -authorize=false -user="root" -password="pass"`
+- `./goxy -host="" -port=9090 -authorize=true -user="root" -password="pass"`
 
-# Generate self-signed certificate and private key(Optional for HTTPS based proxy server)
+## Curls commands for testing 
 
-- Install `openssl` if not already install, then run the below commands to generate `certtificate` and `private   key` for your server.
-
-```
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem
-```
-    
-
+- `curl  -U proxyUser:proxyPassword --proxy http://localhost:9090 http://google.com`
 

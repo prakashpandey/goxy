@@ -10,6 +10,7 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -23,14 +24,23 @@ func auth(r *http.Request) bool {
 			log.Printf("Proxy-Authorization=%s", authHeader)
 			// get base64 encoded user credentials string which contains userName, pass
 			headerStr := strings.Split(authHeader, "Basic ")
-			encodedCredentials, _ := base64.StdEncoding.DecodeString(headerStr[1])
-			decodedCredentials := string(encodedCredentials)
-			// userName, userPassword are seperated by ':'
-			userCredentials := strings.Split(decodedCredentials, ":")
-			userName := userCredentials[0]
-			userPassword := userCredentials[1]
-			if userName == config.userName && userPassword == config.password {
-				return true
+			if len(headerStr) == 2 {
+				fmt.Println("headerStr: ", headerStr)
+				encodedCredentials, err := base64.StdEncoding.DecodeString(headerStr[1])
+				fmt.Println("encodedCredentials: ", encodedCredentials)
+				if err == nil {
+					decodedCredentials := string(encodedCredentials)
+					fmt.Println("decodedCredentials: ", decodedCredentials)
+					// userName, userPassword are seperated by ':'
+					userCredentials := strings.Split(decodedCredentials, ":")
+					if len(userCredentials) == 2 {
+						userName := userCredentials[0]
+						userPassword := userCredentials[1]
+						if userName == config.userName && userPassword == config.password {
+							return true
+						}
+					}
+				}
 			}
 			// no need to  return false here as outer `return flase` will do the same.
 		}

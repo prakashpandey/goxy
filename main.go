@@ -66,8 +66,13 @@ func main() {
 	setProxyConfig()
 	log.Printf("Running goxy at [hostName: %s, port: %d]\n",
 		config.hostName, config.port)
+
+	// add root handler
+	http.HandleFunc("/", rootHandler)
+
 	// start https server in new goroutine
 	// go http.ListenAndServeTLS(":9091", "cert.pem", "key.pem", nil)
+
 	// start http server
 	http.ListenAndServe(config.hostName+":"+strconv.Itoa(config.port), nil)
 }
